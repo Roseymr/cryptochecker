@@ -8,8 +8,8 @@ class Balance {
 
   Balance.fromMap(Map m)
       : this.asset = m['asset'],
-        this.free = m['free'],
-        this.locked = m['locked'];
+        this.free = double.parse(m['free']),
+        this.locked = double.parse(m['locked']);
 }
 
 /// Current account information
@@ -29,9 +29,9 @@ class AccountInfo {
   final List<String> permissions;
 
   AccountInfo.fromMap(Map m)
-      : this.makerCommission = m['makerComission'],
-        this.takerCommission = m['takerComission'],
-        this.buyerCommission = m['buyerComission'],
+      : this.makerCommission = m['makerCommission'],
+        this.takerCommission = m['takerCommission'],
+        this.buyerCommission = m['buyerCommission'],
         this.sellerCommission = m['sellerCommission'],
         this.canTrade = m['canTrade'],
         this.canWithdraw = m['canWithdraw'],
@@ -40,5 +40,5 @@ class AccountInfo {
         this.accountType = m['accountType'],
         this.balances =
             m['balances'].map<Balance>((b) => Balance.fromMap(b)).toList(),
-        this.permissions = m['permissions'];
+        this.permissions = List<String>.from(m['permissions']);
 }

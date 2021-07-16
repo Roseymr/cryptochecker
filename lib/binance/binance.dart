@@ -13,6 +13,7 @@
 library binance;
 
 export 'data/rest_classes.dart';
+export 'data/spot_classes.dart';
 export 'data/ws_classes.dart';
 export 'data/enums.dart';
 

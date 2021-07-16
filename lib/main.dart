@@ -12,6 +12,8 @@ var customColors = {
 
 void main() => runApp(MyApp());
 
+//var a = DateTime.now().millisecondsSinceEpoch.toString();
+
 var rest = Binance();
 
 class MyApp extends StatelessWidget {
@@ -37,13 +39,11 @@ class _BalanceState extends State<Balance> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(10.0),
+      margin: const EdgeInsets.all(100.0),
       color: customColors['primary'],
-      width: 200.0,
-      height: 48.0,
-      child: FutureBuilder<DateTime>(
-        future: rest.time(),
-        builder: (BuildContext context, AsyncSnapshot<DateTime> snapshot) {
+      child: FutureBuilder<AccountInfo>(
+        future: rest.accountInfo(),
+        builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
           // AsyncSnapshot<Your object type>
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: Text('Please wait its loading...'));
