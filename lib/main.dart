@@ -12,8 +12,6 @@ var customColors = {
 
 void main() => runApp(MyApp());
 
-//var a = DateTime.now().millisecondsSinceEpoch.toString();
-
 var rest = Binance();
 
 class MyApp extends StatelessWidget {
@@ -22,7 +20,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         body: Center(
-          child: Balance(),
+          child: BalanceWidget(),
         ),
         backgroundColor: customColors['background'],
       ),
@@ -30,12 +28,26 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Balance extends StatefulWidget {
+class BalanceWidget extends StatefulWidget {
   @override
   _BalanceState createState() => _BalanceState();
 }
 
-class _BalanceState extends State<Balance> {
+Future<String> printData(AccountInfo? acc) async {
+  String res = '';
+
+  if (acc != null)
+    for (Balance b in acc.balances)
+      if (b.free != 0) {
+        AveragedPrice avg = await rest.averagePrice(b.asset + 'EUR');
+        res +=
+            '${b.asset}: ${b.free} - ${(avg.price * (b.free as double)).toStringAsFixed(2)} EUR \n';
+      }
+
+  return res;
+}
+
+class _BalanceState extends State<BalanceWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -51,9 +63,17 @@ class _BalanceState extends State<Balance> {
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
             else
-              return Center(
-                  child: new Text(
-                      '${snapshot.data.toString()}')); // snapshot.data  :- get your object which is pass from your downloadData() function
+              return FutureBuilder<String>(
+                future: printData(snapshot.data),
+                builder: (context, snap) {
+                  if (snap.hasData) {
+                    return Center(
+                      child: Text('${snap.data}'),
+                    );
+                  }
+                  return Center(child: Text('Please wait its loading...'));
+                },
+              );
           }
         },
       ),

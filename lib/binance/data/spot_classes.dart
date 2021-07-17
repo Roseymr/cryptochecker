@@ -1,3 +1,5 @@
+import 'package:cryptochecker/binance/binance.dart';
+
 /// Represents the Balances contained within [AccountInfo.balances]
 ///
 /// https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data

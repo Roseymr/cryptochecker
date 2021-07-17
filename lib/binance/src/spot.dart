@@ -11,20 +11,14 @@ import 'exceptions.dart';
 class Spot {
   Future<dynamic> _private(String path, [Map<String, String?>? params]) async {
     final uri = Uri.https('api.binance.com', 'api$path', params);
-    final response = await http.get(
-      uri,
-      headers: {
-        'X-MBX-APIKEY': apiKey.public,
-      },
-    );
+    final response = await http.get(uri, headers: {
+      'X-MBX-APIKEY': apiKey.public,
+    });
 
     final result = convert.jsonDecode(response.body);
 
-    if (result is Map) {
-      if (result.containsKey("code")) {
-        throw BinanceApiException(result["msg"], result["code"]);
-      }
-    }
+    if (result is Map) if (result.containsKey("code"))
+      throw BinanceApiException(result["msg"], result["code"]);
 
     return result;
   }
@@ -42,9 +36,7 @@ class Spot {
     var digest = hmacSha256.convert(bytes);
 
     final params = {'timestamp': '$time', 'signature': '$digest'};
-
     final response = await _private('/v3/account', params);
-    print(response);
 
     return AccountInfo.fromMap(response);
   }
