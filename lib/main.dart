@@ -151,53 +151,71 @@ class _CurrencyState extends State<CurrencyWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return new Container(
-        width: 200,
-        alignment: Alignment.topRight,
+    return Theme(
+        // Wrapping the widget on a Theme so it's possible to disable splashColor and highlightColor
+        // This is done in order to not see highlight artifacts arround the rounded border of the dropdown menu
+        data: ThemeData(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
         child: new Container(
-            decoration: BoxDecoration(
-              color: customColors['secondary'],
-              borderRadius: new BorderRadius.vertical(
-                  top: Radius.circular(15), bottom: Radius.circular(15)),
-            ),
-            child: ExpansionTile(
-              title: new Row(
-                children: <Widget>[
-                  Icon(
-                    currencyIcon[selectedCurrency],
-                    color: Colors.white,
-                  ),
-                  Text(
-                    'Currency ($selectedCurrency)',
-                    style: const TextStyle(fontSize: 15, color: Colors.white),
-                  ),
-                ],
-              ),
-              children: <Widget>[
-                new Container(
-                    height: 45.0,
-                    child: GestureDetector(
-                      onTap: () {
-                        _setCurrency();
-                        RestartWidget.restartApp(context);
-                      },
-                      child: new Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Icon(
-                            currencyIcon[_currencyOption()],
-                            color: Colors.white,
-                          ),
-                          Text(
-                            '${_currencyOption()}',
-                            style: const TextStyle(
-                                fontSize: 15, color: Colors.white),
-                          ),
-                        ],
+            // Width and position of the button
+            width: 150,
+            alignment: Alignment.topRight,
+            child: new Container(
+                // Rounded borders on the ExpansionTile
+                decoration: BoxDecoration(
+                  color: customColors['secondary'],
+                  borderRadius: new BorderRadius.vertical(
+                      top: Radius.circular(30), bottom: Radius.circular(30)),
+                ),
+                child: ExpansionTile(
+                  iconColor: Colors.black, // Change the color of the arrow
+                  // First Row with the current currency
+                  title: new Row(
+                    children: <Widget>[
+                      Icon(
+                        currencyIcon[selectedCurrency],
+                        color: Colors.white,
                       ),
-                    )),
-              ],
-            )));
+                      Text(
+                        '  $selectedCurrency',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  // Second row with the currency avaible to switch
+                  children: <Widget>[
+                    new Container(
+                        height: 45.0,
+                        child: GestureDetector(
+                          // onTap change the currency and reload the App
+                          onTap: () {
+                            _setCurrency();
+                            RestartWidget.restartApp(context);
+                          },
+                          child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(
+                                currencyIcon[_currencyOption()],
+                                color: Colors.white,
+                              ),
+                              Text(
+                                '${_currencyOption()}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ))));
   }
 }
 
