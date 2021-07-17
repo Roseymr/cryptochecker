@@ -59,18 +59,21 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
       home: Scaffold(
         body: new Container(
-            child: new Column(
+            child: new Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            new Container(
+              width: 1000,
+              height: 500,
+              alignment: Alignment.center,
+              child: BalanceWidget(),
+            ),
             new Container(
               // Create the currency button on top right with some padding
               margin: const EdgeInsets.only(top: 25.0, right: 25.0),
               alignment: Alignment.topRight,
               child: CurrencyWidget(),
-            ),
-            new Container(
-              height: 600,
-              alignment: Alignment.center,
-              child: BalanceWidget(),
             ),
           ],
         )),
@@ -108,6 +111,7 @@ Future<String> printData(AccountInfo? acc) async {
   return res;
 }
 
+// Select currency Button with clickable dropdown
 class _CurrencyState extends State<CurrencyWidget> {
   // Change the currency being used every time the function is called
   void _setCurrency() async {
@@ -157,6 +161,7 @@ class _CurrencyState extends State<CurrencyWidget> {
         data: ThemeData(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
+          dividerColor: Colors.transparent,
         ),
         child: new Container(
             // Width and position of the button
@@ -223,7 +228,7 @@ class _BalanceState extends State<BalanceWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(100.0),
+      margin: const EdgeInsets.only(top: 100, right: 10),
       color: customColors['primary'],
       child: FutureBuilder<AccountInfo>(
         future: rest.accountInfo(DateTime.now().millisecondsSinceEpoch),
