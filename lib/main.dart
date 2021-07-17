@@ -41,7 +41,7 @@ Future<String> printData(AccountInfo? acc) async {
       if (b.free != 0) {
         AveragedPrice avg = await rest.averagePrice(b.asset + 'EUR');
         res +=
-            '${b.asset}: ${b.free} - ${(avg.price * (b.free as double)).toStringAsFixed(2)} EUR \n';
+            '${b.asset}: ${b.free} - ${(avg.price * b.free).toStringAsFixed(2)} EUR \n';
       }
 
   return res;
@@ -54,7 +54,7 @@ class _BalanceState extends State<BalanceWidget> {
       margin: const EdgeInsets.all(100.0),
       color: customColors['primary'],
       child: FutureBuilder<AccountInfo>(
-        future: rest.accountInfo(),
+        future: rest.accountInfo(DateTime.now().millisecondsSinceEpoch),
         builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
           // AsyncSnapshot<Your object type>
           if (snapshot.connectionState == ConnectionState.waiting) {
