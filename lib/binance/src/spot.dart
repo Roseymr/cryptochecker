@@ -23,19 +23,30 @@ class Spot {
     return result;
   }
 
-  /// Returns general info about the account from /v3/account
-  ///
-  /// https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#account-information-user_data
-  Future<AccountInfo> accountInfo(/*String time*/) async {
-    var time = DateTime.now().millisecondsSinceEpoch;
-
+  Digest signRequest(Map params) {
+    var queryString = Uri(
+        queryParameters: params.map((key, value) =>
+            MapEntry(key, value == null ? null : value.toString()))).query;
     var key = convert.utf8.encode(apiKey.secret);
-    var bytes = convert.utf8.encode('timestamp=$time');
-
+    var bytes = convert.utf8.encode(queryString);
     var hmacSha256 = Hmac(sha256, key);
     var digest = hmacSha256.convert(bytes);
 
-    final params = {'timestamp': '$time', 'signature': '$digest'};
+    return digest;
+  }
+
+  /// Returns general info about the account from /v3/account
+  ///
+  /// https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#account-information-user_data
+  Future<AccountInfo> accountInfo(
+    int time, {
+    int? recvWindow,
+  }) async {
+    final params = {'timestamp': '$time'};
+
+    if (recvWindow != null) params['recvWindow'] = '$recvWindow';
+    params['signature'] = '${signRequest(params)}';
+
     final response = await _private('/v3/account', params);
 
     return AccountInfo.fromMap(response);
