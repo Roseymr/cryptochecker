@@ -11,8 +11,6 @@ var customColors = {
   'neutral': Color(0xFFD1D1D1),
 };
 
-void main() => runApp(MyApp());
-
 var rest = Binance();
 String? selectedCurrency = 'EUR';
 Map<String, IconData> currencyIcon = {
@@ -20,42 +18,7 @@ Map<String, IconData> currencyIcon = {
   'USDT': Icons.attach_money,
 };
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return RestartWidget(
-        child: MaterialApp(
-      home: Scaffold(
-        body: new Container(
-            child: new Column(
-          children: <Widget>[
-            new Container(
-              margin: const EdgeInsets.only(top: 25.0, right: 25.0),
-              alignment: Alignment.topRight,
-              child: LanguageWidget(),
-            ),
-            new Container(
-              height: 600,
-              alignment: Alignment.center,
-              child: BalanceWidget(),
-            ),
-          ],
-        )),
-        backgroundColor: customColors['background'],
-      ),
-    ));
-  }
-}
-
-class BalanceWidget extends StatefulWidget {
-  @override
-  _BalanceState createState() => _BalanceState();
-}
-
-class LanguageWidget extends StatefulWidget {
-  @override
-  _LanguageState createState() => _LanguageState();
-}
+void main() => runApp(MyApp());
 
 class RestartWidget extends StatefulWidget {
   RestartWidget({required this.child});
@@ -88,6 +51,45 @@ class _RestartWidgetState extends State<RestartWidget> {
   }
 }
 
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // App warpped arround a RestartWidget needed to reload the app properly
+    return RestartWidget(
+        child: MaterialApp(
+      home: Scaffold(
+        body: new Container(
+            child: new Column(
+          children: <Widget>[
+            new Container(
+              // Create the currency button on top right with some padding
+              margin: const EdgeInsets.only(top: 25.0, right: 25.0),
+              alignment: Alignment.topRight,
+              child: CurrencyWidget(),
+            ),
+            new Container(
+              height: 600,
+              alignment: Alignment.center,
+              child: BalanceWidget(),
+            ),
+          ],
+        )),
+        backgroundColor: customColors['background'],
+      ),
+    ));
+  }
+}
+
+class BalanceWidget extends StatefulWidget {
+  @override
+  _BalanceState createState() => _BalanceState();
+}
+
+class CurrencyWidget extends StatefulWidget {
+  @override
+  _CurrencyState createState() => _CurrencyState();
+}
+
 Future<String> printData(AccountInfo? acc) async {
   String res = '';
 
@@ -106,7 +108,8 @@ Future<String> printData(AccountInfo? acc) async {
   return res;
 }
 
-class _LanguageState extends State<LanguageWidget> {
+class _CurrencyState extends State<CurrencyWidget> {
+  // Change the currency being used every time the function is called
   void _setCurrency() async {
     String curr;
 
@@ -123,6 +126,7 @@ class _LanguageState extends State<LanguageWidget> {
     });
   }
 
+  // Save the currency preferences on the device
   void _getCurrency() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? currencyName = prefs.getString('currency');
@@ -132,11 +136,13 @@ class _LanguageState extends State<LanguageWidget> {
     });
   }
 
+  // Returns the currency that is not beign used by the user
   String _currencyOption() {
     if (selectedCurrency == 'EUR') return 'USDT';
     return 'EUR';
   }
 
+  // When the widget is created, get the currency preference
   @override
   void initState() {
     _getCurrency();
