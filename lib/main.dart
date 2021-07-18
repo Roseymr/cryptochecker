@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:desktop_window/desktop_window.dart';
@@ -99,22 +101,71 @@ class CurrencyWidget extends StatefulWidget {
   _CurrencyState createState() => _CurrencyState();
 }
 
-Future<String> printData(AccountInfo? acc) async {
-  String res = '';
+Future<Container> printData(AccountInfo? acc) async {
+  Map<String, List<double>> coinInfo = {};
+  double total = 0;
+  double avgPercentage = 0;
 
-  /*Make a total money function*/
+  for (Balance b in acc!.balances)
+    if (b.free != 0) {
+      AveragedPrice avg =
+          await rest.averagePrice('${b.asset}$selectedCurrency');
+      TickerStats stat = await rest.dailyStats('${b.asset}$selectedCurrency');
 
-  if (acc != null)
-    for (Balance b in acc.balances)
-      if (b.free != 0) {
-        AveragedPrice avg =
-            await rest.averagePrice(b.asset + '$selectedCurrency');
-        TickerStats stat = await rest.dailyStats(b.asset + '$selectedCurrency');
-        res +=
-            '${b.asset}: ${b.free} - ${(avg.price * b.free).toStringAsFixed(2)} $selectedCurrency - Last Day: ${stat.priceChangePercent}%\n';
-      }
+      coinInfo['${b.asset}'] = [
+        avg.price * b.free,
+        b.free,
+        stat.priceChangePercent
+      ];
+    }
 
-  return res;
+  coinInfo.forEach((key, value) {
+    total += value.first;
+  });
+  coinInfo['Total'] = [total];
+
+  coinInfo.forEach((key, value) {
+    if (key != 'Total') {
+      avgPercentage += value[2] * (value.first / total);
+    }
+  });
+  coinInfo['Percentage 24hr'] = [avgPercentage];
+
+  return new Container(
+    child: new Center(
+        child: new Column(
+      children: [
+        for (MapEntry entry in coinInfo.entries)
+          if (entry.key != 'Total' && entry.key != 'Percentage 24hr')
+            new Row(children: [
+              new Text(
+                '${entry.key}: \n',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              new Text(
+                '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+              ),
+            ]),
+        new Row(children: [
+          new Text(
+            'Total: ',
+            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          new Text(
+              '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency')
+        ]),
+        new Row(children: [
+          new Text(
+            'Percentage 24hr: ',
+            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          new Text(
+              '${(coinInfo['Percentage 24hr']!.first).toStringAsFixed(2)} %')
+        ]),
+      ],
+    )),
+  );
 }
 
 // Select currency Button with clickable dropdown
@@ -245,12 +296,12 @@ class _BalanceState extends State<BalanceWidget> {
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
             else
-              return FutureBuilder<String>(
+              return FutureBuilder<Container>(
                 future: printData(snapshot.data),
                 builder: (context, snap) {
                   if (snap.hasData) {
                     return Center(
-                      child: Text('${snap.data}'),
+                      child: snap.data, /*Text('${snap.data}'),*/
                     );
                   }
                   return Center(child: Text('Please wait its loading...'));
