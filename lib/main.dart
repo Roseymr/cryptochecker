@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:desktop_window/desktop_window.dart';
@@ -193,7 +191,7 @@ class _CurrencyState extends State<CurrencyWidget> {
     String? currencyName = prefs.getString('currency');
 
     setState(() {
-      selectedCurrency = currencyName;
+      if (currencyName != null) selectedCurrency = currencyName;
     });
   }
 
