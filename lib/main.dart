@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/widgets.dart';
 import 'binance/binance.dart';
 
@@ -59,24 +60,29 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
       home: Scaffold(
         body: new Container(
-            child: new Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Container(
-              width: 1000,
-              height: 500,
-              alignment: Alignment.center,
-              child: BalanceWidget(),
-            ),
-            new Container(
-              // Create the currency button on top right with some padding
-              margin: const EdgeInsets.only(top: 25.0, right: 25.0),
-              alignment: Alignment.topRight,
-              child: CurrencyWidget(),
-            ),
-          ],
-        )),
+            child: new FutureBuilder(
+                // Configure the window size
+                future: DesktopWindow.setWindowSize(Size(1300, 900)),
+                builder: (context, snapshot) {
+                  return new Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      new Container(
+                        width: 1000,
+                        height: 500,
+                        alignment: Alignment.center,
+                        child: BalanceWidget(),
+                      ),
+                      new Container(
+                        // Create the currency button on top right with some padding
+                        margin: const EdgeInsets.only(top: 25.0, right: 25.0),
+                        alignment: Alignment.topRight,
+                        child: CurrencyWidget(),
+                      ),
+                    ],
+                  );
+                })),
         backgroundColor: customColors['background'],
       ),
     ));
