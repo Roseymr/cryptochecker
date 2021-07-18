@@ -62,16 +62,15 @@ class MyApp extends StatelessWidget {
         body: new Container(
             child: new FutureBuilder(
                 // Configure the window size
-                future: DesktopWindow.setWindowSize(Size(1300, 900)),
+                future: DesktopWindow.setWindowSize(Size(700, 600)),
                 builder: (context, snapshot) {
                   return new Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       new Container(
-                        width: 1000,
+                        width: 450,
                         height: 500,
-                        alignment: Alignment.center,
                         child: BalanceWidget(),
                       ),
                       new Container(
@@ -130,40 +129,37 @@ Future<Container> printData(AccountInfo? acc) async {
   coinInfo['Percentage 24hr'] = [avgPercentage];
 
   return new Container(
-    child: new Center(
-        child: new Column(
-      children: [
-        for (MapEntry entry in coinInfo.entries)
-          if (entry.key != 'Total' && entry.key != 'Percentage 24hr')
-            new Row(children: [
-              new Text(
-                '${entry.key}: \n',
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              new Text(
-                '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
-              ),
-            ]),
-        new Row(children: [
-          new Text(
-            'Total: ',
-            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          new Text(
-              '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency')
-        ]),
-        new Row(children: [
-          new Text(
-            'Percentage 24hr: ',
-            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          new Text(
-              '${(coinInfo['Percentage 24hr']!.first).toStringAsFixed(2)} %')
-        ]),
-      ],
-    )),
-  );
+      child: new Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      for (MapEntry entry in coinInfo.entries)
+        if (entry.key != 'Total' && entry.key != 'Percentage 24hr')
+          new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            new Text(
+              '${entry.key}: \n',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            new Text(
+              '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+            ),
+          ]),
+      new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        new Text(
+          'Total: ',
+          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        new Text(
+            '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency')
+      ]),
+      new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        new Text(
+          'Percentage 24hr: ',
+          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        new Text('${(coinInfo['Percentage 24hr']!.first).toStringAsFixed(2)} %')
+      ]),
+    ],
+  ));
 }
 
 // Select currency Button with clickable dropdown
@@ -282,27 +278,38 @@ class _CurrencyState extends State<CurrencyWidget> {
 class _BalanceState extends State<BalanceWidget> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 100, right: 10),
-      color: customColors['primary'],
+    return new Container(
+      margin: const EdgeInsets.only(top: 180, right: 10),
+      decoration: new BoxDecoration(
+        color: customColors['primary'],
+        borderRadius: new BorderRadius.vertical(top: Radius.circular(50)),
+      ),
       child: FutureBuilder<AccountInfo>(
         future: rest.accountInfo(DateTime.now().millisecondsSinceEpoch),
         builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: Text('Please wait its loading...'));
+            return Center(
+                child: Text(
+              'Please wait its loading...',
+              style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ));
           } else {
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
             else
-              return FutureBuilder<Container>(
+              return new FutureBuilder<Container>(
                 future: printData(snapshot.data),
                 builder: (context, snap) {
-                  if (snap.hasData) {
+                  if (snap.hasData)
                     return Center(
-                      child: snap.data, /*Text('${snap.data}'),*/
+                      child: snap.data,
                     );
-                  }
-                  return Center(child: Text('Please wait its loading...'));
+                  return Center(
+                      child: Text(
+                    'Please wait its loading...',
+                    style: new TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20),
+                  ));
                 },
               );
           }
