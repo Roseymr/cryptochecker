@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/widgets.dart';
@@ -18,6 +20,7 @@ Map<String, IconData> currencyIcon = {
   'EUR': Icons.euro,
   'USDT': Icons.attach_money,
 };
+var focusNode = FocusNode();
 
 void main() => runApp(MyApp());
 
@@ -62,7 +65,7 @@ class MyApp extends StatelessWidget {
         body: new Container(
             child: new FutureBuilder(
                 // Configure the window size
-                future: DesktopWindow.setWindowSize(Size(700, 600)),
+                future: DesktopWindow.setWindowSize(Size(800, 600)),
                 builder: (context, snapshot) {
                   return new Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -168,10 +171,7 @@ class _CurrencyState extends State<CurrencyWidget> {
   void _setCurrency() async {
     String curr;
 
-    if (selectedCurrency == 'EUR')
-      curr = 'USDT';
-    else
-      curr = 'EUR';
+    selectedCurrency == 'EUR' ? curr = 'USDT' : curr = 'EUR';
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('currency', curr);
@@ -216,7 +216,7 @@ class _CurrencyState extends State<CurrencyWidget> {
         ),
         child: new Container(
             // Width and position of the button
-            width: 150,
+            width: 140,
             alignment: Alignment.topRight,
             child: new Container(
                 // Rounded borders on the ExpansionTile
@@ -276,6 +276,21 @@ class _CurrencyState extends State<CurrencyWidget> {
 }
 
 class _BalanceState extends State<BalanceWidget> {
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(
+        Duration(minutes: 3), (Timer t) => RestartWidget.restartApp(context));
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Container(

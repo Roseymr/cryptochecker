@@ -1,10 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'dart:io';
 import 'package:crypto/crypto.dart';
-
 import '../data/spot_classes.dart';
-import '../data/enums.dart';
 import '../apiKey.dart' as apiKey;
 import 'exceptions.dart';
 
@@ -13,6 +10,7 @@ class Spot {
     final uri = Uri.https('api.binance.com', 'api$path', params);
     final response = await http.get(uri, headers: {
       'X-MBX-APIKEY': apiKey.public,
+      'Acess-Control-Alllow-Origin': '*',
     });
 
     final result = convert.jsonDecode(response.body);
