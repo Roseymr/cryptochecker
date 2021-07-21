@@ -295,19 +295,29 @@ class _BalanceState extends State<BalanceWidget> {
   Widget build(BuildContext context) {
     return new Container(
       margin: const EdgeInsets.only(top: 180, right: 10),
-      decoration: new BoxDecoration(
-        color: customColors['primary'],
-        borderRadius: new BorderRadius.vertical(top: Radius.circular(50)),
-      ),
+      decoration: BoxDecoration(
+          color: customColors['primary'],
+          borderRadius: new BorderRadius.vertical(top: Radius.circular(50)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: Offset(0, 3), // changes position of shadow
+            ),
+          ]),
       child: FutureBuilder<AccountInfo>(
         future: rest.accountInfo(DateTime.now().millisecondsSinceEpoch),
         builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-                child: Text(
-              'Please wait its loading...',
-              style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ));
+            return SizedBox(
+                width: 50,
+                height: 50,
+                child: Center(
+                    child: CircularProgressIndicator(
+                  valueColor: new AlwaysStoppedAnimation<Color>(
+                      customColors['background']!),
+                )));
           } else {
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -319,12 +329,14 @@ class _BalanceState extends State<BalanceWidget> {
                     return Center(
                       child: snap.data,
                     );
-                  return Center(
-                      child: Text(
-                    'Please wait its loading...',
-                    style: new TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 20),
-                  ));
+                  return SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: Center(
+                          child: CircularProgressIndicator(
+                        valueColor: new AlwaysStoppedAnimation<Color>(
+                            customColors['background']!),
+                      )));
                 },
               );
           }

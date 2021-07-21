@@ -42,7 +42,7 @@ class Spot {
   }) async {
     final params = {'timestamp': '$time'};
 
-    if (recvWindow != null) params['recvWindow'] = '$recvWindow';
+    params['recvWindow'] = '60000';
     params['signature'] = '${signRequest(params)}';
 
     final response = await _private('/v3/account', params);
