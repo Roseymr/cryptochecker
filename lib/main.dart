@@ -8,9 +8,9 @@ import 'binance/binance.dart';
 
 /* Custom Colors */
 var customColors = {
-  'background': Color(0xFF343538),
-  'primary': Color(0xFFF3C178),
-  'secondary': Color(0xFFFE5F55),
+  'background': Color(0xFF212529),
+  'primary': Color(0xFFd9d9d9),
+  'secondary': Color(0xFFf94144),
   'neutral': Color(0xFFD1D1D1),
 };
 
@@ -140,26 +140,28 @@ Future<Container> printData(AccountInfo? acc) async {
           new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             new Text(
               '${entry.key}: \n',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             new Text(
-              '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
-            ),
+                '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+                style: new TextStyle(fontSize: 15)),
           ]),
       new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         new Text(
           'Total: ',
-          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         new Text(
-            '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency')
+            '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
+            style: new TextStyle(fontSize: 15)),
       ]),
       new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         new Text(
           'Percentage 24hr: ',
-          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        new Text('${(coinInfo['Percentage 24hr']!.first).toStringAsFixed(2)} %')
+        new Text('${(coinInfo['Percentage 24hr']!.first).toStringAsFixed(2)} %',
+            style: new TextStyle(fontSize: 15)),
       ]),
     ],
   ));
@@ -300,10 +302,10 @@ class _BalanceState extends State<BalanceWidget> {
           borderRadius: new BorderRadius.vertical(top: Radius.circular(50)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              spreadRadius: 5,
+              color: Colors.black.withOpacity(0.6),
+              spreadRadius: 6,
               blurRadius: 7,
-              offset: Offset(0, 3), // changes position of shadow
+              offset: Offset(0, 4), // changes position of shadow
             ),
           ]),
       child: FutureBuilder<AccountInfo>(
@@ -311,13 +313,11 @@ class _BalanceState extends State<BalanceWidget> {
         builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return SizedBox(
-                width: 50,
-                height: 50,
                 child: Center(
                     child: CircularProgressIndicator(
-                  valueColor: new AlwaysStoppedAnimation<Color>(
-                      customColors['background']!),
-                )));
+              valueColor: new AlwaysStoppedAnimation<Color>(
+                  customColors['background']!),
+            )));
           } else {
             if (snapshot.hasError)
               return Center(child: Text('Error: ${snapshot.error}'));
@@ -330,13 +330,11 @@ class _BalanceState extends State<BalanceWidget> {
                       child: snap.data,
                     );
                   return SizedBox(
-                      width: 50,
-                      height: 50,
                       child: Center(
                           child: CircularProgressIndicator(
-                        valueColor: new AlwaysStoppedAnimation<Color>(
-                            customColors['background']!),
-                      )));
+                    valueColor: new AlwaysStoppedAnimation<Color>(
+                        customColors['background']!),
+                  )));
                 },
               );
           }
