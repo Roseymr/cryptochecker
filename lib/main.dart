@@ -62,30 +62,24 @@ class MyApp extends StatelessWidget {
     return RestartWidget(
         child: MaterialApp(
       home: Scaffold(
-        body: new Container(
-            child: new FutureBuilder(
-                // Configure the window size
-                future: DesktopWindow.setWindowSize(Size(800, 600)),
-                builder: (context, snapshot) {
-                  return new Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      new Container(
-                        width: 450,
-                        height: 500,
-                        child: BalanceWidget(),
-                      ),
-                      new Container(
-                        // Create the currency button on top right with some padding
-                        margin: const EdgeInsets.only(top: 25.0, right: 25.0),
-                        alignment: Alignment.topRight,
-                        child: CurrencyWidget(),
-                      ),
-                    ],
-                  );
-                })),
-        backgroundColor: customColors['background'],
+        body: new SafeArea(
+          child: new Container(
+              child: new Stack(
+            children: <Widget>[
+              new Container(
+                height: 1500,
+                child: BalanceWidget(),
+              ),
+              new Container(
+                // Create the currency button on top right with some padding
+                margin: const EdgeInsets.only(top: 5.0, right: 25.0),
+                alignment: Alignment.topRight,
+                child: CurrencyWidget(),
+              ),
+            ],
+          )),
+        ),
+        backgroundColor: customColors['background']!,
       ),
     ));
   }
@@ -218,7 +212,7 @@ class _CurrencyState extends State<CurrencyWidget> {
         ),
         child: new Container(
             // Width and position of the button
-            width: 140,
+            width: 150,
             alignment: Alignment.topRight,
             child: new Container(
                 // Rounded borders on the ExpansionTile
@@ -296,7 +290,7 @@ class _BalanceState extends State<BalanceWidget> {
   @override
   Widget build(BuildContext context) {
     return new Container(
-      margin: const EdgeInsets.only(top: 180, right: 10),
+      margin: const EdgeInsets.only(top: 200),
       decoration: BoxDecoration(
           color: customColors['primary'],
           borderRadius: new BorderRadius.vertical(top: Radius.circular(50)),
