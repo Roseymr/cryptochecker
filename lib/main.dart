@@ -239,9 +239,12 @@ class _CurrencyState extends State<CurrencyWidget> {
         child: Container(
           // Rounded borders on the ExpansionTile
           decoration: BoxDecoration(
-              color: customColors['secondary'],
-              borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(30), bottom: Radius.circular(30))),
+            color: customColors['secondary'],
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(30),
+              bottom: Radius.circular(30),
+            ),
+          ),
           child: ExpansionTile(
             iconColor: Colors.black, // Change the color of the arrow
             // First Row with the current currency
@@ -254,9 +257,10 @@ class _CurrencyState extends State<CurrencyWidget> {
                 Text(
                   '  $selectedCurrency',
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Colors.white),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.white,
+                  ),
                 )
               ],
             ),
@@ -316,8 +320,8 @@ class _BalanceState extends State<BalanceWidget> {
     return SizedBox(
       child: Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(customColors['primary']!),
-        ),
+            valueColor:
+                AlwaysStoppedAnimation<Color>(customColors['primary']!)),
       ),
     );
   }
@@ -335,38 +339,40 @@ class _BalanceState extends State<BalanceWidget> {
             builder: (context, snap) {
               if (snap.hasData)
                 return Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                          margin: const EdgeInsets.only(top: 200),
-                          child: Text(
-                              '${snap.data!['Percent']!.first > 0 ? '+' : ''}${snap.data!['Percent']!.first.toStringAsFixed(2)}%',
-                              style: TextStyle(
-                                  fontSize: 75,
-                                  color: snap.data!['Percent']!.first > 0
-                                      ? Colors.green
-                                      : Colors.red))),
-                      Expanded(
-                        child: Container(
-                            margin: const EdgeInsets.only(top: 50),
-                            decoration: BoxDecoration(
-                                color: customColors['primary'],
-                                borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(50)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.5),
-                                    spreadRadius: 5,
-                                    blurRadius: 7,
-                                    offset: Offset(
-                                        0, -5), // changes position of shadow
-                                  ),
-                                ]),
-                            child: _printData(
-                              snap.data!,
-                            )),
-                      )
-                    ]);
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 200),
+                      child: Text(
+                        '${snap.data!['Percent']!.first > 0 ? '+' : ''}${snap.data!['Percent']!.first.toStringAsFixed(2)}%',
+                        style: TextStyle(
+                            fontSize: 75,
+                            color: snap.data!['Percent']!.first > 0
+                                ? Colors.green
+                                : Colors.red),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 50),
+                        decoration: BoxDecoration(
+                          color: customColors['primary'],
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(50)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.5),
+                              spreadRadius: 5,
+                              blurRadius: 7,
+                              offset: Offset(0, -5),
+                            ),
+                          ],
+                        ),
+                        child: _printData(snap.data!),
+                      ),
+                    )
+                  ],
+                );
               return _myLoadingCircle();
             },
           );
