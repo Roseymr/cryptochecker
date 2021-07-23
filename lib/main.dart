@@ -146,6 +146,7 @@ Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
 
 Container _printData(Map<String, List<double>> coinInfo) {
   return Container(
+    margin: const EdgeInsets.only(bottom: 30),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -160,19 +161,20 @@ Container _printData(Map<String, List<double>> coinInfo) {
                       fontWeight: FontWeight.bold, fontSize: 25),
                 ),
                 Text(
-                    '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
-                    style: TextStyle(fontSize: 22)),
+                  '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+                  style: TextStyle(fontSize: 22),
+                ),
               ],
             ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Total: ',
+              '\nTotal: ',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
             ),
             Text(
-                '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
+                '\n${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
                 style: TextStyle(fontSize: 22)),
           ],
         ),
@@ -368,9 +370,14 @@ class _BalanceState extends State<BalanceWidget> {
                             ),
                           ],
                         ),
-                        child: _printData(snap.data!),
+                        child: Center(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: _printData(snap.data!),
+                          ),
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 );
               return _myLoadingCircle();
