@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/widgets.dart';
@@ -15,12 +14,12 @@ var customColors = {
 };
 
 var rest = Binance();
+
 String? selectedCurrency = 'EUR';
 Map<String, IconData> currencyIcon = {
   'EUR': Icons.euro,
   'USDT': Icons.attach_money,
 };
-var focusNode = FocusNode();
 
 void main() => runApp(MyApp());
 
@@ -58,30 +57,47 @@ class _RestartWidgetState extends State<RestartWidget> {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+        home: Home() /*escape 'No MediaQuery widget found' error*/
+        );
+  }
+}
+
+class Home extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     // App warpped arround a RestartWidget needed to reload the app properly
     return RestartWidget(
-        child: MaterialApp(
-      home: Scaffold(
-        body: new SafeArea(
-          child: new Container(
-              child: new Stack(
-            children: <Widget>[
-              new Container(
-                height: 1500,
-                child: BalanceWidget(),
+      child: MaterialApp(
+        home: Scaffold(
+          body: SafeArea(
+            child: Container(
+              child: Stack(
+                children: <Widget>[
+                  Container(
+                    height: size.height,
+                    child: BalanceWidget(),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        // Create the currency button on top right with some padding
+                        margin: const EdgeInsets.only(top: 25.0, right: 15.0),
+                        alignment: Alignment.topRight,
+                        child: CurrencyWidget(),
+                      )
+                    ],
+                  ),
+                ],
               ),
-              new Container(
-                // Create the currency button on top right with some padding
-                margin: const EdgeInsets.only(top: 5.0, right: 25.0),
-                alignment: Alignment.topRight,
-                child: CurrencyWidget(),
-              ),
-            ],
-          )),
+            ),
+          ),
+          backgroundColor: customColors['background']!,
         ),
-        backgroundColor: customColors['background']!,
       ),
-    ));
+    );
   }
 }
 
@@ -95,7 +111,7 @@ class CurrencyWidget extends StatefulWidget {
   _CurrencyState createState() => _CurrencyState();
 }
 
-Future<Container> printData(AccountInfo? acc) async {
+Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
   Map<String, List<double>> coinInfo = {};
   double total = 0;
   double avgPercentage = 0;
@@ -119,62 +135,67 @@ Future<Container> printData(AccountInfo? acc) async {
   coinInfo['Total'] = [total];
 
   coinInfo.forEach((key, value) {
-    if (key != 'Total') {
+    if (key != 'Total' && key != 'Percent')
       avgPercentage += value[2] * (value.first / total);
-    }
   });
-  coinInfo['Percentage 24hr'] = [avgPercentage];
 
-  return new Container(
-      child: new Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      for (MapEntry entry in coinInfo.entries)
-        if (entry.key != 'Total' && entry.key != 'Percentage 24hr')
-          new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            new Text(
-              '${entry.key}: \n',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+  coinInfo['Percent'] = [avgPercentage];
+
+  return coinInfo;
+}
+
+Container _printData(Map<String, List<double>> coinInfo) {
+  return Container(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (MapEntry entry in coinInfo.entries)
+          if (entry.key != 'Total' && entry.key != 'Percent')
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${entry.key}: \n',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 25),
+                ),
+                Text(
+                    '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+                    style: TextStyle(fontSize: 22)),
+              ],
             ),
-            new Text(
-                '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
-                style: new TextStyle(fontSize: 15)),
-          ]),
-      new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        new Text(
-          'Total: ',
-          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Total: ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+            ),
+            Text(
+                '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
+                style: TextStyle(fontSize: 22)),
+          ],
         ),
-        new Text(
-            '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
-            style: new TextStyle(fontSize: 15)),
-      ]),
-      new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        new Text(
-          'Percentage 24hr: ',
-          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        new Text('${(coinInfo['Percentage 24hr']!.first).toStringAsFixed(2)} %',
-            style: new TextStyle(fontSize: 15)),
-      ]),
-    ],
-  ));
+      ],
+    ),
+  );
 }
 
 // Select currency Button with clickable dropdown
 class _CurrencyState extends State<CurrencyWidget> {
   // Change the currency being used every time the function is called
   void _setCurrency() async {
-    String curr;
+    String curr = '';
 
     selectedCurrency == 'EUR' ? curr = 'USDT' : curr = 'EUR';
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('currency', curr);
 
-    setState(() {
-      selectedCurrency = curr;
-    });
+    if (mounted)
+      setState(() {
+        selectedCurrency = curr;
+      });
   }
 
   // Save the currency preferences on the device
@@ -182,9 +203,10 @@ class _CurrencyState extends State<CurrencyWidget> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? currencyName = prefs.getString('currency');
 
-    setState(() {
-      if (currencyName != null) selectedCurrency = currencyName;
-    });
+    if (mounted)
+      setState(() {
+        if (currencyName != null) selectedCurrency = currencyName;
+      });
   }
 
   // Returns the currency that is not beign used by the user
@@ -203,35 +225,60 @@ class _CurrencyState extends State<CurrencyWidget> {
   @override
   Widget build(BuildContext context) {
     return Theme(
-        // Wrapping the widget on a Theme so it's possible to disable splashColor and highlightColor
-        // This is done in order to not see highlight artifacts arround the rounded border of the dropdown menu
-        data: ThemeData(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          dividerColor: Colors.transparent,
-        ),
-        child: new Container(
-            // Width and position of the button
-            width: 150,
-            alignment: Alignment.topRight,
-            child: new Container(
-                // Rounded borders on the ExpansionTile
-                decoration: BoxDecoration(
-                  color: customColors['secondary'],
-                  borderRadius: new BorderRadius.vertical(
-                      top: Radius.circular(30), bottom: Radius.circular(30)),
+      // Wrapping the widget on a Theme so it's possible to disable splashColor and highlightColor
+      // This is done in order to not see highlight artifacts arround the rounded border of the dropdown menu
+      data: ThemeData(
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        dividerColor: Colors.transparent,
+      ),
+      child: Container(
+        // Width and position of the button
+        width: 150,
+        alignment: Alignment.topRight,
+        child: Container(
+          // Rounded borders on the ExpansionTile
+          decoration: BoxDecoration(
+              color: customColors['secondary'],
+              borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(30), bottom: Radius.circular(30))),
+          child: ExpansionTile(
+            iconColor: Colors.black, // Change the color of the arrow
+            // First Row with the current currency
+            title: Row(
+              children: <Widget>[
+                Icon(
+                  currencyIcon[selectedCurrency],
+                  color: Colors.white,
                 ),
-                child: ExpansionTile(
-                  iconColor: Colors.black, // Change the color of the arrow
-                  // First Row with the current currency
-                  title: new Row(
+                Text(
+                  '  $selectedCurrency',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Colors.white),
+                )
+              ],
+            ),
+            // Second row with the currency avaible to switch
+            children: <Widget>[
+              Container(
+                height: 45.0,
+                child: GestureDetector(
+                  // onTap change the currency and reload the App
+                  onTap: () {
+                    _setCurrency();
+                    RestartWidget.restartApp(context);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Icon(
-                        currencyIcon[selectedCurrency],
+                        currencyIcon[_currencyOption()],
                         color: Colors.white,
                       ),
                       Text(
-                        '  $selectedCurrency',
+                        '${_currencyOption()}',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -239,35 +286,13 @@ class _CurrencyState extends State<CurrencyWidget> {
                       ),
                     ],
                   ),
-                  // Second row with the currency avaible to switch
-                  children: <Widget>[
-                    new Container(
-                        height: 45.0,
-                        child: GestureDetector(
-                          // onTap change the currency and reload the App
-                          onTap: () {
-                            _setCurrency();
-                            RestartWidget.restartApp(context);
-                          },
-                          child: new Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(
-                                currencyIcon[_currencyOption()],
-                                color: Colors.white,
-                              ),
-                              Text(
-                                '${_currencyOption()}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        )),
-                  ],
-                ))));
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -287,53 +312,66 @@ class _BalanceState extends State<BalanceWidget> {
     super.dispose();
   }
 
+  SizedBox _myLoadingCircle() {
+    return SizedBox(
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(customColors['primary']!),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return new Container(
-      margin: const EdgeInsets.only(top: 200),
-      decoration: BoxDecoration(
-          color: customColors['primary'],
-          borderRadius: new BorderRadius.vertical(top: Radius.circular(50)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.6),
-              spreadRadius: 6,
-              blurRadius: 7,
-              offset: Offset(0, 4), // changes position of shadow
-            ),
-          ]),
-      child: FutureBuilder<AccountInfo>(
-        future: rest.accountInfo(DateTime.now().millisecondsSinceEpoch),
-        builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return SizedBox(
-                child: Center(
-                    child: CircularProgressIndicator(
-              valueColor: new AlwaysStoppedAnimation<Color>(
-                  customColors['background']!),
-            )));
-          } else {
-            if (snapshot.hasError)
-              return Center(child: Text('Error: ${snapshot.error}'));
-            else
-              return new FutureBuilder<Container>(
-                future: printData(snapshot.data),
-                builder: (context, snap) {
-                  if (snap.hasData)
-                    return Center(
-                      child: snap.data,
-                    );
-                  return SizedBox(
-                      child: Center(
-                          child: CircularProgressIndicator(
-                    valueColor: new AlwaysStoppedAnimation<Color>(
-                        customColors['background']!),
-                  )));
-                },
-              );
-          }
-        },
-      ),
+    return FutureBuilder<AccountInfo>(
+      future: rest.accountInfo(DateTime.now().millisecondsSinceEpoch),
+      builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _myLoadingCircle();
+        } else {
+          return FutureBuilder<Map<String, List<double>>>(
+            future: _getData(snapshot.data),
+            builder: (context, snap) {
+              if (snap.hasData)
+                return Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                          margin: const EdgeInsets.only(top: 200),
+                          child: Text(
+                              '${snap.data!['Percent']!.first > 0 ? '+' : ''}${snap.data!['Percent']!.first.toStringAsFixed(2)}%',
+                              style: TextStyle(
+                                  fontSize: 75,
+                                  color: snap.data!['Percent']!.first > 0
+                                      ? Colors.green
+                                      : Colors.red))),
+                      Expanded(
+                        child: Container(
+                            margin: const EdgeInsets.only(top: 50),
+                            decoration: BoxDecoration(
+                                color: customColors['primary'],
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(50)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.5),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: Offset(
+                                        0, -5), // changes position of shadow
+                                  ),
+                                ]),
+                            child: _printData(
+                              snap.data!,
+                            )),
+                      )
+                    ]);
+              return _myLoadingCircle();
+            },
+          );
+        }
+      },
     );
   }
 }
