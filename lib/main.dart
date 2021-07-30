@@ -18,7 +18,7 @@ var rest = Binance();
 String? selectedCurrency = 'EUR';
 Map<String, IconData> currencyIcon = {
   'EUR': Icons.euro,
-  'USDT': Icons.attach_money,
+  'USD': Icons.attach_money,
 };
 
 void main() => runApp(MyApp());
@@ -118,9 +118,10 @@ Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
 
   for (Balance b in acc!.balances)
     if (b.free != 0) {
-      AveragedPrice avg =
-          await rest.averagePrice('${b.asset}$selectedCurrency');
-      TickerStats stat = await rest.dailyStats('${b.asset}$selectedCurrency');
+      AveragedPrice avg = await rest.averagePrice(
+          '${b.asset}${selectedCurrency == 'USD' ? 'USDT' : selectedCurrency}');
+      TickerStats stat = await rest.dailyStats(
+          '${b.asset}${selectedCurrency == 'USD' ? 'USDT' : selectedCurrency}');
 
       coinInfo['${b.asset}'] = [
         avg.price * b.free,
@@ -153,30 +154,34 @@ Container _printData(Map<String, List<double>> coinInfo) {
         for (MapEntry entry in coinInfo.entries)
           if (entry.key != 'Total' && entry.key != 'Percent')
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '${entry.key}: \n',
+                  '${entry.key}: ',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 25),
                 ),
                 Text(
-                  '\n${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
-                  style: TextStyle(fontSize: 22),
+                  '${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+                  style: TextStyle(fontSize: 25),
                 ),
               ],
             ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '\nTotal: ',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-            ),
-            Text(
-                '\n${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
-                style: TextStyle(fontSize: 22)),
-          ],
+        Container(
+          margin: EdgeInsets.only(top: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Total: ',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+              ),
+              Text(
+                  '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
+                  style: TextStyle(fontSize: 25)),
+            ],
+          ),
         ),
       ],
     ),
@@ -189,7 +194,7 @@ class _CurrencyState extends State<CurrencyWidget> {
   void _setCurrency() async {
     String curr = '';
 
-    selectedCurrency == 'EUR' ? curr = 'USDT' : curr = 'EUR';
+    selectedCurrency == 'EUR' ? curr = 'USD' : curr = 'EUR';
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('currency', curr);
@@ -213,7 +218,7 @@ class _CurrencyState extends State<CurrencyWidget> {
 
   // Returns the currency that is not beign used by the user
   String _currencyOption() {
-    if (selectedCurrency == 'EUR') return 'USDT';
+    if (selectedCurrency == 'EUR') return 'USD';
     return 'EUR';
   }
 
@@ -236,7 +241,7 @@ class _CurrencyState extends State<CurrencyWidget> {
       ),
       child: Container(
         // Width and position of the button
-        width: 150,
+        width: 138,
         alignment: Alignment.topRight,
         child: Container(
           // Rounded borders on the ExpansionTile
@@ -336,6 +341,13 @@ class _BalanceState extends State<BalanceWidget> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _myLoadingCircle();
         } else {
+          if (snapshot.hasError)
+            return Center(
+              child: Text(
+                '${snapshot.error}',
+                style: TextStyle(fontSize: 30, color: Colors.white),
+              ),
+            );
           return FutureBuilder<Map<String, List<double>>>(
             future: _getData(snapshot.data),
             builder: (context, snap) {
@@ -379,6 +391,13 @@ class _BalanceState extends State<BalanceWidget> {
                       ),
                     ),
                   ],
+                );
+              if (snap.hasError)
+                return Center(
+                  child: Text(
+                    '${snap.error}',
+                    style: TextStyle(fontSize: 30, color: Colors.white),
+                  ),
                 );
               return _myLoadingCircle();
             },
