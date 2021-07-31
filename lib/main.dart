@@ -241,7 +241,7 @@ class _CurrencyState extends State<CurrencyWidget> {
       ),
       child: Container(
         // Width and position of the button
-        width: 138,
+        width: 128,
         alignment: Alignment.topRight,
         child: Container(
           // Rounded borders on the ExpansionTile
@@ -256,13 +256,14 @@ class _CurrencyState extends State<CurrencyWidget> {
             iconColor: Colors.black, // Change the color of the arrow
             // First Row with the current currency
             title: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 Icon(
                   currencyIcon[selectedCurrency],
                   color: Colors.white,
                 ),
                 Text(
-                  '  $selectedCurrency',
+                  ' $selectedCurrency',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -378,7 +379,7 @@ class _BalanceState extends State<BalanceWidget> {
                               color: Colors.black.withOpacity(0.5),
                               spreadRadius: 5,
                               blurRadius: 7,
-                              offset: Offset(0, -5),
+                              offset: Offset(0, -6),
                             ),
                           ],
                         ),
