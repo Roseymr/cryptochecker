@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:desktop_window/desktop_window.dart';
+import 'package:crypto_font_icons/crypto_font_icons.dart';
 import 'package:flutter/widgets.dart';
 import 'binance/binance.dart';
 
@@ -79,17 +80,17 @@ class Home extends StatelessWidget {
                     height: size.height,
                     child: BalanceWidget(),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        // Create the currency button on top right with some padding
-                        margin: const EdgeInsets.only(top: 25.0, right: 15.0),
-                        alignment: Alignment.topRight,
-                        child: CurrencyWidget(),
-                      )
-                    ],
+                  Container(
+                    // Create the currency button on top right with some padding
+                    margin: const EdgeInsets.only(top: 25.0, right: 15.0),
+                    alignment: Alignment.topRight,
+                    child: CurrencyWidget(),
                   ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 25.0, left: 15.0),
+                    alignment: Alignment.topLeft,
+                    child: AccountWidget(),
+                  )
                 ],
               ),
             ),
@@ -99,6 +100,98 @@ class Home extends StatelessWidget {
       ),
     );
   }
+}
+
+class AccountPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Center(
+          child: Container(
+            margin: EdgeInsets.only(right: 45),
+            child: Text(
+              'Account Page',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'API Key',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 3, bottom: 50),
+              alignment: Alignment.center,
+              width: 350,
+              child: TextFormField(
+                decoration: InputDecoration(
+                  fillColor: customColors['primary'],
+                  filled: true,
+                ),
+              ),
+            ),
+            Text(
+              'Secret Key',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 3, bottom: 50),
+              alignment: Alignment.center,
+              width: 350,
+              child: TextFormField(
+                decoration: InputDecoration(
+                  fillColor: customColors['primary'],
+                  filled: true,
+                ),
+              ),
+            ),
+            Container(
+              width: 128,
+              height: 50,
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                  ),
+                ),
+                onPressed: () {},
+                child: Text(
+                  'Save',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      backgroundColor: customColors['background'],
+    );
+  }
+}
+
+class AccountWidget extends StatefulWidget {
+  @override
+  _AccountState createState() => _AccountState();
 }
 
 class BalanceWidget extends StatefulWidget {
@@ -157,10 +250,15 @@ Container _printData(Map<String, List<double>> coinInfo) {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  '${entry.key}: ',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 25),
+                Row(
+                  children: [
+                    Icon(CryptoFontIcons.getIcon('${entry.key}') ?? Icons.help),
+                    Text(
+                      ' ${entry.key}: ',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                    ),
+                  ],
                 ),
                 Text(
                   '${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
@@ -178,14 +276,52 @@ Container _printData(Map<String, List<double>> coinInfo) {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
               ),
               Text(
-                  '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
-                  style: TextStyle(fontSize: 25)),
+                '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
+                style: TextStyle(fontSize: 25),
+              ),
             ],
           ),
         ),
       ],
     ),
   );
+}
+
+class _AccountState extends State<AccountWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 128,
+      height: 50,
+      child: ElevatedButton(
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          ),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AccountPage()),
+          );
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.account_circle),
+            Text(
+              '  Account',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // Select currency Button with clickable dropdown
@@ -242,7 +378,6 @@ class _CurrencyState extends State<CurrencyWidget> {
       child: Container(
         // Width and position of the button
         width: 128,
-        alignment: Alignment.topRight,
         child: Container(
           // Rounded borders on the ExpansionTile
           decoration: BoxDecoration(
@@ -256,7 +391,7 @@ class _CurrencyState extends State<CurrencyWidget> {
             iconColor: Colors.black, // Change the color of the arrow
             // First Row with the current currency
             title: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Icon(
                   currencyIcon[selectedCurrency],
@@ -315,7 +450,7 @@ class _BalanceState extends State<BalanceWidget> {
   void initState() {
     super.initState();
     timer = Timer.periodic(
-        Duration(minutes: 3), (Timer t) => RestartWidget.restartApp(context));
+        Duration(minutes: 10), (Timer t) => RestartWidget.restartApp(context));
   }
 
   @override
