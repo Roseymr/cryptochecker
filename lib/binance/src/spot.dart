@@ -6,10 +6,14 @@ import '../apiKey.dart' as apiKey;
 import 'exceptions.dart';
 
 class Spot {
+  var public = apiKey.public;
+  var secret = apiKey.secret;
+
   Future<dynamic> _private(String path, [Map<String, String?>? params]) async {
     final uri = Uri.https('api.binance.com', 'api$path', params);
+
     final response = await http.get(uri, headers: {
-      'X-MBX-APIKEY': apiKey.public,
+      'X-MBX-APIKEY': public,
       'Acess-Control-Alllow-Origin': '*',
     });
 
@@ -25,12 +29,28 @@ class Spot {
     var queryString = Uri(
         queryParameters: params.map((key, value) =>
             MapEntry(key, value == null ? null : value.toString()))).query;
-    var key = convert.utf8.encode(apiKey.secret);
+    var key = convert.utf8.encode(secret);
     var bytes = convert.utf8.encode(queryString);
     var hmacSha256 = Hmac(sha256, key);
     var digest = hmacSha256.convert(bytes);
 
     return digest;
+  }
+
+  Future<bool> _hasError(String path, String? pub, String? sec,
+      [Map<String, String?>? params]) async {
+    final uri = Uri.https('api.binance.com', 'api$path', params);
+
+    final response = await http.get(uri, headers: {
+      'X-MBX-APIKEY': pub!,
+      'Acess-Control-Alllow-Origin': '*',
+    });
+
+    final result = convert.jsonDecode(response.body);
+
+    if (result is Map) if (result.containsKey("code")) return true;
+
+    return false;
   }
 
   /// Returns general info about the account from /v3/account
@@ -48,5 +68,25 @@ class Spot {
     final response = await _private('/v3/account', params);
 
     return AccountInfo.fromMap(response);
+  }
+
+  Future<bool> accountExists(
+    int time,
+    String? pub,
+    String? sec, {
+    int? recvWindow,
+  }) async {
+    final params = {'timestamp': '$time'};
+
+    params['recvWindow'] = '60000';
+    params['signature'] = '${signRequest(params)}';
+
+    bool error = await _hasError('/v3/account', pub, sec, params);
+
+    if (error) return false;
+    public = pub!;
+    secret = sec!;
+
+    return true;
   }
 }

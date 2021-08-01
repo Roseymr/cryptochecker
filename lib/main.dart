@@ -1,26 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto_font_icons/crypto_font_icons.dart';
 import 'package:flutter/widgets.dart';
 import 'binance/binance.dart';
 
-/* Custom Colors */
-var customColors = {
+String? selectedCurrency = 'EUR';
+Map<String, Color> customColors = {
   'background': Color(0xFF212529),
   'primary': Color(0xFFd9d9d9),
   'secondary': Color(0xFFf94144),
-  'neutral': Color(0xFFD1D1D1),
 };
-
-var rest = Binance();
-
-String? selectedCurrency = 'EUR';
 Map<String, IconData> currencyIcon = {
   'EUR': Icons.euro,
   'USD': Icons.attach_money,
 };
+var rest = Binance();
 
 void main() => runApp(MyApp());
 
@@ -55,12 +52,11 @@ class _RestartWidgetState extends State<RestartWidget> {
   }
 }
 
+// Escape 'No MediaQuery widget found' Error
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Home() /*escape 'No MediaQuery widget found' error*/
-        );
+    return MaterialApp(home: Home());
   }
 }
 
@@ -69,33 +65,36 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     // App warpped arround a RestartWidget needed to reload the app properly
-    return RestartWidget(
-      child: MaterialApp(
-        home: Scaffold(
-          body: SafeArea(
-            child: Container(
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    height: size.height,
-                    child: BalanceWidget(),
-                  ),
-                  Container(
-                    // Create the currency button on top right with some padding
-                    margin: const EdgeInsets.only(top: 25.0, right: 15.0),
-                    alignment: Alignment.topRight,
-                    child: CurrencyWidget(),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 25.0, left: 15.0),
-                    alignment: Alignment.topLeft,
-                    child: AccountWidget(),
-                  )
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: RestartWidget(
+        child: MaterialApp(
+          home: Scaffold(
+            body: SafeArea(
+              child: Container(
+                child: Stack(
+                  children: <Widget>[
+                    Container(
+                      height: size.height,
+                      child: BalanceWidget(),
+                    ),
+                    Container(
+                      // Create the currency button on top right with some padding
+                      margin: const EdgeInsets.only(top: 25.0, right: 15.0),
+                      alignment: Alignment.topRight,
+                      child: CurrencyWidget(),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 25.0, left: 15.0),
+                      alignment: Alignment.topLeft,
+                      child: AccountWidget(),
+                    )
+                  ],
+                ),
               ),
             ),
+            backgroundColor: customColors['background'],
           ),
-          backgroundColor: customColors['background']!,
         ),
       ),
     );
@@ -103,10 +102,26 @@ class Home extends StatelessWidget {
 }
 
 class AccountPage extends StatelessWidget {
+  final apiKey = TextEditingController();
+  final secretKey = TextEditingController();
+
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    apiKey.dispose();
+    secretKey.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+            RestartWidget.restartApp(context);
+          },
+        ),
         title: Center(
           child: Container(
             margin: EdgeInsets.only(right: 45),
@@ -135,6 +150,7 @@ class AccountPage extends StatelessWidget {
               alignment: Alignment.center,
               width: 350,
               child: TextFormField(
+                controller: apiKey,
                 decoration: InputDecoration(
                   fillColor: customColors['primary'],
                   filled: true,
@@ -154,6 +170,7 @@ class AccountPage extends StatelessWidget {
               alignment: Alignment.center,
               width: 350,
               child: TextFormField(
+                controller: secretKey,
                 decoration: InputDecoration(
                   fillColor: customColors['primary'],
                   filled: true,
@@ -161,8 +178,8 @@ class AccountPage extends StatelessWidget {
               ),
             ),
             Container(
-              width: 128,
-              height: 50,
+              width: 130,
+              height: 58,
               child: ElevatedButton(
                 style: ButtonStyle(
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -170,7 +187,48 @@ class AccountPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(30)),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () async {
+                  if (await rest.accountExists(
+                      DateTime.now().millisecondsSinceEpoch,
+                      apiKey.text,
+                      secretKey.text)) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          content: Text(
+                            'Credentials Valid !',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                    Navigator.of(context).pop();
+                    RestartWidget.restartApp(context);
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          content: Text(
+                            'Invalid Credentials !',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
                 child: Text(
                   'Save',
                   style: const TextStyle(
@@ -223,9 +281,7 @@ Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
       ];
     }
 
-  coinInfo.forEach((key, value) {
-    total += value.first;
-  });
+  coinInfo.forEach((key, value) => total += value.first);
   coinInfo['Total'] = [total];
 
   coinInfo.forEach((key, value) {
@@ -291,8 +347,8 @@ class _AccountState extends State<AccountWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 128,
-      height: 50,
+      width: 130,
+      height: 58,
       child: ElevatedButton(
         style: ButtonStyle(
           shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -377,7 +433,7 @@ class _CurrencyState extends State<CurrencyWidget> {
       ),
       child: Container(
         // Width and position of the button
-        width: 128,
+        width: 130,
         child: Container(
           // Rounded borders on the ExpansionTile
           decoration: BoxDecoration(
@@ -391,7 +447,7 @@ class _CurrencyState extends State<CurrencyWidget> {
             iconColor: Colors.black, // Change the color of the arrow
             // First Row with the current currency
             title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 Icon(
                   currencyIcon[selectedCurrency],
