@@ -18,6 +18,7 @@ Map<String, IconData> currencyIcon = {
   'USD': Icons.attach_money,
 };
 var rest = Binance();
+bool firstTime = true;
 
 void main() => runApp(MyApp());
 
@@ -56,8 +57,22 @@ class _RestartWidgetState extends State<RestartWidget> {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Home());
+    return MaterialApp(home: _screenRoute());
   }
+}
+
+void _getFirstTime() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool? ft = prefs.getBool('firstTime');
+
+  if (ft != null) firstTime = ft;
+}
+
+StatelessWidget _screenRoute() {
+  _getFirstTime();
+  if (!firstTime) return Home();
+
+  return AccountPage();
 }
 
 class Home extends StatelessWidget {
@@ -115,13 +130,6 @@ class AccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-            RestartWidget.restartApp(context);
-          },
-        ),
         title: Center(
           child: Container(
             margin: EdgeInsets.only(right: 45),
@@ -192,6 +200,13 @@ class AccountPage extends StatelessWidget {
                       DateTime.now().millisecondsSinceEpoch,
                       apiKey.text,
                       secretKey.text)) {
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    await prefs.setBool('firstTime', false);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
+                    );
                     showDialog(
                       context: context,
                       builder: (context) {
@@ -208,8 +223,6 @@ class AccountPage extends StatelessWidget {
                         );
                       },
                     );
-                    Navigator.of(context).pop();
-                    RestartWidget.restartApp(context);
                   } else {
                     showDialog(
                       context: context,
