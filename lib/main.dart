@@ -132,7 +132,6 @@ class AccountPage extends StatelessWidget {
       appBar: AppBar(
         title: Center(
           child: Container(
-            margin: EdgeInsets.only(right: 45),
             child: Text(
               'Account Page',
               style: const TextStyle(fontWeight: FontWeight.w600),
