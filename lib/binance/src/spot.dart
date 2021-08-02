@@ -62,7 +62,7 @@ class Spot {
   ///
   /// https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#account-information-user_data
   Future<AccountInfo> accountInfo(int time) async {
-    _getCredentials();
+    await getCredentials();
     final params = {'timestamp': '$time'};
 
     params['recvWindow'] = '60000';
@@ -92,7 +92,7 @@ class Spot {
     return true;
   }
 
-  void _getCredentials() async {
+  Future<void> getCredentials() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? key = prefs.getString('apiKey');
     String? secret = prefs.getString('secretKey');

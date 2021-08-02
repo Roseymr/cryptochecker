@@ -22,19 +22,6 @@ bool firstTime = true;
 
 void main() => runApp(MyApp());
 
-class RestartWidget extends StatefulWidget {
-  RestartWidget({required this.child});
-
-  final Widget child;
-
-  static void restartApp(BuildContext context) {
-    context.findAncestorStateOfType<_RestartWidgetState>()!.restartApp();
-  }
-
-  @override
-  _RestartWidgetState createState() => _RestartWidgetState();
-}
-
 class _RestartWidgetState extends State<RestartWidget> {
   Key key = UniqueKey();
 
@@ -53,28 +40,150 @@ class _RestartWidgetState extends State<RestartWidget> {
   }
 }
 
+class RestartWidget extends StatefulWidget {
+  RestartWidget({required this.child});
+
+  final Widget child;
+
+  static void restartApp(BuildContext context) {
+    context.findAncestorStateOfType<_RestartWidgetState>()!.restartApp();
+  }
+
+  @override
+  _RestartWidgetState createState() => _RestartWidgetState();
+}
+
+class AccountWidget extends StatefulWidget {
+  @override
+  _AccountState createState() => _AccountState();
+}
+
+class BalanceWidget extends StatefulWidget {
+  @override
+  _BalanceState createState() => _BalanceState();
+}
+
+class CurrencyWidget extends StatefulWidget {
+  @override
+  _CurrencyState createState() => _CurrencyState();
+}
+
+// Return a Map with the correct information for the user
+Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
+  Map<String, List<double>> coinInfo = {};
+  double total = 0;
+  double avgPercentage = 0;
+
+  for (Balance b in acc!.balances)
+    if (b.free != 0) {
+      AveragedPrice avg = await rest.averagePrice(
+          '${b.asset}${selectedCurrency == 'USD' ? 'USDT' : selectedCurrency}');
+      TickerStats stat = await rest.dailyStats(
+          '${b.asset}${selectedCurrency == 'USD' ? 'USDT' : selectedCurrency}');
+
+      coinInfo['${b.asset}'] = [
+        avg.price * b.free,
+        b.free,
+        stat.priceChangePercent
+      ];
+    }
+
+  coinInfo.forEach((key, value) => total += value.first);
+  coinInfo['Total'] = [total];
+
+  coinInfo.forEach((key, value) {
+    if (key != 'Total' && key != 'Percent')
+      avgPercentage += value[2] * (value.first / total);
+  });
+
+  coinInfo['Percent'] = [avgPercentage];
+
+  return coinInfo;
+}
+
+// Return the Container with the assets information
+Container _printData(Map<String, List<double>> coinInfo) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 30),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Generate the Rows with the Assets Infromation
+        for (MapEntry entry in coinInfo.entries)
+          if (entry.key != 'Total' && entry.key != 'Percent')
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Icon(CryptoFontIcons.getIcon('${entry.key}') ?? Icons.help),
+                    Text(
+                      ' ${entry.key}: ',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                    ),
+                  ],
+                ),
+                Text(
+                  '${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+                  style: TextStyle(fontSize: 25),
+                ),
+              ],
+            ),
+        // Last Container with the Total Amount on the account
+        Container(
+          margin: EdgeInsets.only(top: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Total: ',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+              ),
+              Text(
+                '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
+                style: TextStyle(fontSize: 25),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Check if it's the first time using the app and therefore request the credentials
+Future<StatelessWidget> _screenRoute() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool? ft = prefs.getBool('firstTime');
+  if (ft != null) firstTime = ft;
+
+  if (!firstTime) return Home();
+  return AccountPage();
+}
+
 // Escape 'No MediaQuery widget found' Error
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: _screenRoute());
+    return MaterialApp(
+      home: FutureBuilder<StatelessWidget>(
+        future: _screenRoute(),
+        builder: (ctx, AsyncSnapshot<StatelessWidget> snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return AccountPage();
+          } else {
+            if (snap.hasData) return snap.data!;
+            return AccountPage();
+          }
+        },
+      ),
+    );
   }
 }
 
-void _getFirstTime() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool? ft = prefs.getBool('firstTime');
-
-  if (ft != null) firstTime = ft;
-}
-
-StatelessWidget _screenRoute() {
-  _getFirstTime();
-  if (!firstTime) return Home();
-
-  return AccountPage();
-}
-
+// Displays the Home Page with assets information and both buttons
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -116,6 +225,7 @@ class Home extends StatelessWidget {
   }
 }
 
+// Displays the account page to submit the credentials
 class AccountPage extends StatelessWidget {
   final apiKey = TextEditingController();
   final secretKey = TextEditingController();
@@ -123,6 +233,7 @@ class AccountPage extends StatelessWidget {
   void dispose() {
     // Clean up the controller when the widget is disposed.
     apiKey.dispose();
+    secretKey.dispose();
     secretKey.dispose();
   }
 
@@ -144,54 +255,68 @@ class AccountPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'API Key',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            ),
+            // API Key TextField
             Container(
-              margin: const EdgeInsets.only(top: 3, bottom: 50),
-              alignment: Alignment.center,
               width: 350,
-              child: TextFormField(
+              child: TextField(
+                style: TextStyle(color: Colors.white),
                 controller: apiKey,
                 decoration: InputDecoration(
-                  fillColor: customColors['primary'],
-                  filled: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2.5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2.5),
+                  ),
+                  labelText: 'API Key',
+                  labelStyle: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-            Text(
-              'Secret Key',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            ),
+            // Secret Key TextField
             Container(
-              margin: const EdgeInsets.only(top: 3, bottom: 50),
-              alignment: Alignment.center,
+              margin: const EdgeInsets.all(30),
               width: 350,
-              child: TextFormField(
+              child: TextField(
+                style: TextStyle(color: Colors.white),
                 controller: secretKey,
                 decoration: InputDecoration(
-                  fillColor: customColors['primary'],
-                  filled: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2.5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2.5),
+                  ),
+                  labelText: 'Secret Key',
+                  labelStyle: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
+            // Save button to check the credentials
             Container(
               width: 130,
               height: 58,
               child: ElevatedButton(
+                // Sabe button
+                child: Text(
+                  'Save',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
+                ),
                 style: ButtonStyle(
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
                 ),
                 onPressed: () async {
@@ -199,9 +324,11 @@ class AccountPage extends StatelessWidget {
                       DateTime.now().millisecondsSinceEpoch,
                       apiKey.text,
                       secretKey.text)) {
+                    // If the account exists then change the FirstTime variable
                     SharedPreferences prefs =
                         await SharedPreferences.getInstance();
                     await prefs.setBool('firstTime', false);
+                    // Change the Page to Home
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => Home()),
@@ -222,7 +349,7 @@ class AccountPage extends StatelessWidget {
                         );
                       },
                     );
-                  } else {
+                  } else
                     showDialog(
                       context: context,
                       builder: (context) {
@@ -239,16 +366,7 @@ class AccountPage extends StatelessWidget {
                         );
                       },
                     );
-                  }
                 },
-                child: Text(
-                  'Save',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
-                ),
               ),
             ),
           ],
@@ -259,102 +377,7 @@ class AccountPage extends StatelessWidget {
   }
 }
 
-class AccountWidget extends StatefulWidget {
-  @override
-  _AccountState createState() => _AccountState();
-}
-
-class BalanceWidget extends StatefulWidget {
-  @override
-  _BalanceState createState() => _BalanceState();
-}
-
-class CurrencyWidget extends StatefulWidget {
-  @override
-  _CurrencyState createState() => _CurrencyState();
-}
-
-Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
-  Map<String, List<double>> coinInfo = {};
-  double total = 0;
-  double avgPercentage = 0;
-
-  for (Balance b in acc!.balances)
-    if (b.free != 0) {
-      AveragedPrice avg = await rest.averagePrice(
-          '${b.asset}${selectedCurrency == 'USD' ? 'USDT' : selectedCurrency}');
-      TickerStats stat = await rest.dailyStats(
-          '${b.asset}${selectedCurrency == 'USD' ? 'USDT' : selectedCurrency}');
-
-      coinInfo['${b.asset}'] = [
-        avg.price * b.free,
-        b.free,
-        stat.priceChangePercent
-      ];
-    }
-
-  coinInfo.forEach((key, value) => total += value.first);
-  coinInfo['Total'] = [total];
-
-  coinInfo.forEach((key, value) {
-    if (key != 'Total' && key != 'Percent')
-      avgPercentage += value[2] * (value.first / total);
-  });
-
-  coinInfo['Percent'] = [avgPercentage];
-
-  return coinInfo;
-}
-
-Container _printData(Map<String, List<double>> coinInfo) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 30),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (MapEntry entry in coinInfo.entries)
-          if (entry.key != 'Total' && entry.key != 'Percent')
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Icon(CryptoFontIcons.getIcon('${entry.key}') ?? Icons.help),
-                    Text(
-                      ' ${entry.key}: ',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-                    ),
-                  ],
-                ),
-                Text(
-                  '${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
-                  style: TextStyle(fontSize: 25),
-                ),
-              ],
-            ),
-        Container(
-          margin: EdgeInsets.only(top: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Total: ',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-              ),
-              Text(
-                '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
-                style: TextStyle(fontSize: 25),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
+// Account Button to change to AccountPage
 class _AccountState extends State<AccountWidget> {
   @override
   Widget build(BuildContext context) {
@@ -426,10 +449,9 @@ class _CurrencyState extends State<CurrencyWidget> {
     return 'EUR';
   }
 
-  // When the widget is created, get the currency preference
   @override
   void initState() {
-    _getCurrency();
+    _getCurrency(); // When the widget is created, get the currency preference
     super.initState();
   }
 
@@ -511,9 +533,11 @@ class _CurrencyState extends State<CurrencyWidget> {
   }
 }
 
+// Balance Container that displays the asset information
 class _BalanceState extends State<BalanceWidget> {
   Timer? timer;
 
+  // Initiate the counter to refresh the App
   @override
   void initState() {
     super.initState();
@@ -523,16 +547,17 @@ class _BalanceState extends State<BalanceWidget> {
 
   @override
   void dispose() {
-    timer?.cancel();
+    timer?.cancel(); // Cancel the Timer when the widget is disposed
     super.dispose();
   }
 
+  // Auxiliary function to return a LoadingCircle
   SizedBox _myLoadingCircle() {
     return SizedBox(
       child: Center(
         child: CircularProgressIndicator(
-            valueColor:
-                AlwaysStoppedAnimation<Color>(customColors['primary']!)),
+          valueColor: AlwaysStoppedAnimation<Color>(customColors['primary']!),
+        ),
       ),
     );
   }
@@ -541,21 +566,27 @@ class _BalanceState extends State<BalanceWidget> {
   Widget build(BuildContext context) {
     return FutureBuilder<AccountInfo>(
       future: rest.accountInfo(DateTime.now().millisecondsSinceEpoch),
-      builder: (BuildContext context, AsyncSnapshot<AccountInfo> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+      builder: (context, AsyncSnapshot<AccountInfo> snapshot) {
+        // While connecting show the LoadingCircle
+        if (snapshot.connectionState == ConnectionState.waiting)
           return _myLoadingCircle();
-        } else {
-          if (snapshot.hasError)
-            return Center(
-              child: Text(
-                '${snapshot.error}',
-                style: TextStyle(fontSize: 30, color: Colors.white),
-              ),
-            );
+        else
+          // Get the Map with the Data
           return FutureBuilder<Map<String, List<double>>>(
             future: _getData(snapshot.data),
-            builder: (context, snap) {
-              if (snap.hasData)
+            builder: (context, AsyncSnapshot<Map<String, List<double>>> snap) {
+              // While connecting show the LoadingCircle
+              if (snap.connectionState == ConnectionState.waiting) {
+                return _myLoadingCircle();
+              } else {
+                if (snap.hasError)
+                  return Center(
+                    child: Text(
+                      '${snap.error}',
+                      style: TextStyle(fontSize: 30, color: Colors.white),
+                    ),
+                  );
+                // Display the correct information on the Card
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -575,8 +606,9 @@ class _BalanceState extends State<BalanceWidget> {
                         margin: const EdgeInsets.only(top: 50),
                         decoration: BoxDecoration(
                           color: customColors['primary'],
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(50)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(50),
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.5),
@@ -596,17 +628,9 @@ class _BalanceState extends State<BalanceWidget> {
                     ),
                   ],
                 );
-              if (snap.hasError)
-                return Center(
-                  child: Text(
-                    '${snap.error}',
-                    style: TextStyle(fontSize: 30, color: Colors.white),
-                  ),
-                );
-              return _myLoadingCircle();
+              }
             },
           );
-        }
       },
     );
   }
