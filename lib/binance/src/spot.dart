@@ -9,8 +9,8 @@ class Spot {
   String? apiKey;
   String? secretKey;
 
-  Future<dynamic> _private(String path, [Map<String, String?>? params]) async {
-    final uri = Uri.https('api.binance.com', 'api$path', params);
+  Future<dynamic> _private([Map<String, String?>? params]) async {
+    final uri = Uri.https('api.binance.com', 'api/v3/account', params);
 
     final response = await http.get(uri, headers: {
       'X-MBX-APIKEY': apiKey!,
@@ -25,7 +25,8 @@ class Spot {
     return result;
   }
 
-  Digest signRequest(Map params, String secret) {
+  /// Returns the params signed by the secret key
+  Digest _signRequest(Map params, String secret) {
     var queryString = Uri(
       queryParameters: params.map(
         (key, value) => MapEntry(
@@ -42,9 +43,9 @@ class Spot {
     return digest;
   }
 
-  Future<bool> _hasError(String path, String pub,
-      [Map<String, String?>? params]) async {
-    final uri = Uri.https('api.binance.com', 'api$path', params);
+  /// Returns a bool that tells if the connecting to the account failed (has error)
+  Future<bool> _hasError(String pub, [Map<String, String?>? params]) async {
+    final uri = Uri.https('api.binance.com', 'api/v3/account', params);
 
     final response = await http.get(uri, headers: {
       'X-MBX-APIKEY': pub,
@@ -62,29 +63,31 @@ class Spot {
   ///
   /// https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#account-information-user_data
   Future<AccountInfo> accountInfo(int time) async {
-    await getCredentials();
+    await _getCredentials();
     final params = {'timestamp': '$time'};
 
     params['recvWindow'] = '60000';
-    params['signature'] = '${signRequest(params, secretKey!)}';
+    params['signature'] = '${_signRequest(params, secretKey!)}';
 
-    final response = await _private('/v3/account', params);
+    final response = await _private(params);
 
     return AccountInfo.fromMap(response);
   }
 
+  /// Returns a bool that tells if the account exists or not
   Future<bool> accountExists(int time, String? pub, String? sec) async {
     final params = {'timestamp': '$time'};
 
     params['recvWindow'] = '60000';
-    params['signature'] = '${signRequest(params, sec!)}';
+    params['signature'] = '${_signRequest(params, sec!)}';
 
-    bool error = await _hasError('/v3/account', pub!, params);
+    bool error = await _hasError(pub!, params);
 
     if (error) return false;
     apiKey = pub;
     secretKey = sec;
 
+    // If the account is valid store the keys on the device
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('apiKey', pub);
     await prefs.setString('secretKey', sec);
@@ -92,7 +95,8 @@ class Spot {
     return true;
   }
 
-  Future<void> getCredentials() async {
+  /// Change the apiKey and secretKey variables if there's anything stored on the device
+  Future<void> _getCredentials() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? key = prefs.getString('apiKey');
     String? secret = prefs.getString('secretKey');

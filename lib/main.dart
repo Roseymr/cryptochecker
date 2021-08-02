@@ -68,7 +68,7 @@ class CurrencyWidget extends StatefulWidget {
   _CurrencyState createState() => _CurrencyState();
 }
 
-// Return a Map with the correct information for the user
+/// Returns a Map with the correct information for the user
 Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
   Map<String, List<double>> coinInfo = {};
   double total = 0;
@@ -101,7 +101,7 @@ Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
   return coinInfo;
 }
 
-// Return the Container with the assets information
+/// Returns the Container with the assets information
 Container _printData(Map<String, List<double>> coinInfo) {
   return Container(
     margin: const EdgeInsets.only(bottom: 30),
@@ -153,7 +153,7 @@ Container _printData(Map<String, List<double>> coinInfo) {
   );
 }
 
-// Check if it's the first time using the app and therefore request the credentials
+/// Check if it's the first time using the app and therefore request the credentials
 Future<StatelessWidget> _screenRoute() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool? ft = prefs.getBool('firstTime');
@@ -183,7 +183,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Displays the Home Page with assets information and both buttons
+/// Displays the Home Page with assets information and both buttons
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -225,7 +225,7 @@ class Home extends StatelessWidget {
   }
 }
 
-// Displays the account page to submit the credentials
+/// Displays the account page to submit the credentials
 class AccountPage extends StatelessWidget {
   final apiKey = TextEditingController();
   final secretKey = TextEditingController();
@@ -377,7 +377,7 @@ class AccountPage extends StatelessWidget {
   }
 }
 
-// Account Button to change to AccountPage
+/// Account Button to change to AccountPage
 class _AccountState extends State<AccountWidget> {
   @override
   Widget build(BuildContext context) {
@@ -415,7 +415,7 @@ class _AccountState extends State<AccountWidget> {
   }
 }
 
-// Select currency Button with clickable dropdown
+/// Select currency Button with clickable dropdown
 class _CurrencyState extends State<CurrencyWidget> {
   // Change the currency being used every time the function is called
   void _setCurrency() async {
@@ -533,7 +533,7 @@ class _CurrencyState extends State<CurrencyWidget> {
   }
 }
 
-// Balance Container that displays the asset information
+/// Balance Container that displays the asset information
 class _BalanceState extends State<BalanceWidget> {
   Timer? timer;
 
