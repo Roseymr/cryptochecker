@@ -5,7 +5,7 @@ import '../data/ws_classes.dart';
 
 class BinanceWebsocket {
   IOWebSocketChannel _public(String channel) => IOWebSocketChannel.connect(
-        'wss://stream.binance.com:9443/ws/${channel}',
+        'wss://stream.binance.com:9443/ws/$channel',
         pingInterval: Duration(minutes: 1),
       );
 
@@ -80,7 +80,7 @@ class BinanceWebsocket {
   }
 
   /// Pushes any update to the best bid or ask's price or quantity in real-time for all symbols
-  /// 
+  ///
   /// https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#all-book-tickers-stream
 
   Stream<WSBookTicker> allBookTicker() {
