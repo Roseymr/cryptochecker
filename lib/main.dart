@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:crypto_font_icons/crypto_font_icons.dart';
+import 'package:cryptocoins_icons/cryptocoins_icons.dart';
 import 'package:flutter/widgets.dart';
 import 'binance/binance.dart';
 
@@ -117,7 +117,8 @@ Container _printData(Map<String, List<double>> coinInfo) {
               children: [
                 Row(
                   children: [
-                    Icon(CryptoFontIcons.getIcon('${entry.key}') ?? Icons.help),
+                    Icon(CryptoCoinIcons.getCryptoIcon('${entry.key}') ??
+                        Icons.help),
                     Text(
                       ' ${entry.key}: ',
                       style:
