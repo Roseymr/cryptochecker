@@ -1,5 +1,5 @@
 name: cryptochecker
-description: A new Flutter project.
+description: A simple app to check your crypto assets (binance users only).
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -35,6 +35,7 @@ dependencies:
   cryptocoins_icons: 0.1.0
   msix: ^2.1.3
   flutter_launcher_icons: ^0.9.1
+  flutter_native_splash: ^1.2.1
 
 flutter_icons:
   image_path: "assets/images/logo.png"
@@ -42,6 +43,12 @@ flutter_icons:
   adaptive_icon_foreground: "assets/images/foreground.png"
   android: true
   ios: true 
+
+flutter_native_splash:
+  color: '#212529'
+  image: 'assets/images/splash.png'
+  android: true
+  ios: true
 
 dev_dependencies:
   flutter_test:
