@@ -330,14 +330,12 @@ class AccountPage extends StatelessWidget {
                     SharedPreferences prefs =
                         await SharedPreferences.getInstance();
                     await prefs.setBool('firstTime', false);
-                    // Change the Page to Home
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Home()),
-                    );
+                    BuildContext? dialogContext;
                     showDialog(
+                      barrierDismissible: false,
                       context: context,
-                      builder: (context) {
+                      builder: (BuildContext context) {
+                        dialogContext = context;
                         return AlertDialog(
                           content: Text(
                             'Credentials Valid !',
@@ -351,10 +349,20 @@ class AccountPage extends StatelessWidget {
                         );
                       },
                     );
-                  } else
+                    await Future.delayed(Duration(seconds: 3));
+                    Navigator.pop(dialogContext!);
+                    // Change the Page to Home
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
+                    );
+                  } else {
+                    BuildContext? dialogContext;
                     showDialog(
+                      barrierDismissible: false,
                       context: context,
-                      builder: (context) {
+                      builder: (BuildContext context) {
+                        dialogContext = context;
                         return AlertDialog(
                           content: Text(
                             'Invalid Credentials !',
@@ -368,6 +376,9 @@ class AccountPage extends StatelessWidget {
                         );
                       },
                     );
+                    await Future.delayed(Duration(seconds: 3));
+                    Navigator.pop(dialogContext!);
+                  }
                 },
               ),
             ),
