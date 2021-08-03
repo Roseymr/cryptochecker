@@ -74,7 +74,7 @@ Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
   double total = 0;
   double avgPercentage = 0;
 
-  for (Balance b in acc!.balances)
+  for (Balance b in acc!.balances) {
     if (b.free != 0) {
       AveragedPrice avg = await rest.averagePrice(
           '${b.asset}${selectedCurrency == 'USD' ? 'USDT' : selectedCurrency}');
@@ -87,6 +87,7 @@ Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
         stat.priceChangePercent
       ];
     }
+  }
 
   coinInfo.forEach((key, value) => total += value.first);
   coinInfo['Total'] = [total];
