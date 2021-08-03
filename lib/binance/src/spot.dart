@@ -6,8 +6,8 @@ import 'exceptions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Spot {
-  String? apiKey;
-  String? secretKey;
+  static String? apiKey;
+  static String? secretKey;
 
   Future<dynamic> _private([Map<String, String?>? params]) async {
     final uri = Uri.https('api.binance.com', 'api/v3/account', params);
@@ -63,7 +63,7 @@ class Spot {
   ///
   /// https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#account-information-user_data
   Future<AccountInfo> accountInfo(int time) async {
-    await _getCredentials();
+    await getCredentials();
     final params = {'timestamp': '$time'};
 
     params['recvWindow'] = '60000';
@@ -96,7 +96,7 @@ class Spot {
   }
 
   /// Change the apiKey and secretKey variables if there's anything stored on the device
-  Future<void> _getCredentials() async {
+  static Future<void> getCredentials() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? key = prefs.getString('apiKey');
     String? secret = prefs.getString('secretKey');

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cryptocoins_icons/cryptocoins_icons.dart';
 import 'package:flutter/widgets.dart';
 import 'binance/binance.dart';
+import 'binance/src/spot.dart';
 
 String? selectedCurrency = 'EUR';
 Map<String, Color> customColors = {
@@ -161,7 +162,15 @@ Future<StatelessWidget> _screenRoute() async {
   bool? ft = prefs.getBool('firstTime');
   if (ft != null) firstTime = ft;
 
-  if (!firstTime) return Home();
+  if (!firstTime) {
+    await Spot.getCredentials();
+    if (await rest.accountExists(
+      DateTime.now().millisecondsSinceEpoch,
+      Spot.apiKey,
+      Spot.secretKey,
+    )) return Home();
+  }
+
   return AccountPage();
 }
 
