@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cryptocoins_icons/cryptocoins_icons.dart';
+import 'package:introduction_screen/introduction_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'binance/binance.dart';
 import 'binance/src/spot.dart';
@@ -20,6 +21,7 @@ Map<String, IconData> currencyIcon = {
 };
 var rest = Binance();
 bool firstTime = true;
+bool intro = true;
 
 void main() => runApp(MyApp());
 
@@ -160,7 +162,11 @@ Container _printData(Map<String, List<double>> coinInfo) {
 Future<StatelessWidget> _screenRoute() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool? ft = prefs.getBool('firstTime');
+  bool? ftIntro = prefs.getBool('intro');
   if (ft != null) firstTime = ft;
+  if (ftIntro != null) intro = ftIntro;
+
+  if (intro) return IntroductionPage();
 
   if (!firstTime) {
     await Spot.getCredentials();
@@ -169,6 +175,7 @@ Future<StatelessWidget> _screenRoute() async {
       Spot.apiKey,
       Spot.secretKey,
     )) return Home();
+    return AccountPage();
   }
 
   return AccountPage();
@@ -183,10 +190,26 @@ class MyApp extends StatelessWidget {
         future: _screenRoute(),
         builder: (ctx, AsyncSnapshot<StatelessWidget> snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return AccountPage();
+            return Container(
+              color: customColors['background'],
+              child: SizedBox(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      customColors['primary']!,
+                    ),
+                  ),
+                ),
+              ),
+            );
           } else {
             if (snap.hasData) return snap.data!;
-            return AccountPage();
+            return Container(
+              color: customColors['background'],
+              child: Center(
+                child: Text('${snap.error}'),
+              ),
+            );
           }
         },
       ),
@@ -396,6 +419,130 @@ class AccountPage extends StatelessWidget {
       ),
       backgroundColor: customColors['background'],
     );
+  }
+}
+
+class IntroductionPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final introKey = GlobalKey<IntroductionScreenState>();
+    const pageDecoration = const PageDecoration(
+      titlePadding: EdgeInsets.only(top: 50, bottom: 20),
+      titleTextStyle: TextStyle(
+        fontSize: 28.0,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+      ),
+    );
+    const textDescription = const TextStyle(fontSize: 18, color: Colors.white);
+
+    return MaterialApp(
+        home: IntroductionScreen(
+      key: introKey,
+      onDone: () async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        intro = false;
+        await prefs.setBool('intro', false);
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => MyApp()));
+      },
+      globalBackgroundColor: customColors['background'],
+      color: Colors.white,
+      showSkipButton: true,
+      skip: Text(
+        'Skip',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+        ),
+      ),
+      next: const Icon(Icons.navigate_next_rounded),
+      done: const Text(
+        "Done",
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      dotsDecorator: DotsDecorator(
+        activeColor: Colors.white,
+        size: const Size.square(10.0),
+        activeSize: const Size(20.0, 10.0),
+        color: Colors.black26,
+        spacing: const EdgeInsets.symmetric(horizontal: 3.0),
+        activeShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25.0),
+        ),
+      ),
+      pages: [
+        PageViewModel(
+          title: "Login",
+          bodyWidget: Column(
+            children: [
+              Image.asset('assets/images/step1.png'),
+              Container(
+                margin: EdgeInsets.only(top: 20),
+                child: Text(
+                  "Login with your Binance Account Credentials",
+                  style: textDescription,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          decoration: pageDecoration,
+        ),
+        PageViewModel(
+          title: "API Management",
+          bodyWidget: Column(
+            children: [
+              Image.asset('assets/images/step2.png'),
+              Container(
+                margin: EdgeInsets.only(top: 20),
+                child: Text(
+                  "Go to API Management",
+                  style: textDescription,
+                ),
+              ),
+            ],
+          ),
+          decoration: pageDecoration,
+        ),
+        PageViewModel(
+          title: "Create API",
+          bodyWidget: Column(
+            children: [
+              Image.asset('assets/images/step3.png'),
+              Container(
+                margin: EdgeInsets.only(top: 20),
+                child: Text(
+                  "Create the API\n\nChoose the name you want for the label\nFollow the Verification account steps",
+                  style: textDescription,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          decoration: pageDecoration,
+        ),
+        PageViewModel(
+          title: "Save the Credentials",
+          bodyWidget: Column(
+            children: [
+              Image.asset('assets/images/step4.png'),
+              Container(
+                margin: EdgeInsets.only(top: 20),
+                child: Text(
+                  "Only select Enable Reading\nWe recommend to select Unrestricted IP since this will constrain the application's functionality\n\nSave your credentials!",
+                  style: textDescription,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          decoration: pageDecoration,
+        ),
+      ],
+    ));
   }
 }
 
