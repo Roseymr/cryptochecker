@@ -108,33 +108,36 @@ Future<Map<String, List<double>>> _getData(AccountInfo? acc) async {
 /// Returns the Container with the assets information
 Container _printData(Map<String, List<double>> coinInfo) {
   return Container(
-    margin: const EdgeInsets.only(bottom: 30),
+    margin: const EdgeInsets.only(top: 30, bottom: 30),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Generate the Rows with the Assets Infromation
         for (MapEntry entry in coinInfo.entries)
           if (entry.key != 'Total' && entry.key != 'Percent')
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Icon(CryptoCoinIcons.getCryptoIcon('${entry.key}') ??
-                        Icons.help),
-                    Text(
-                      ' ${entry.key}: ',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-                    ),
-                  ],
-                ),
-                Text(
-                  '${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
-                  style: TextStyle(fontSize: 25),
-                ),
-              ],
+            Container(
+              margin: EdgeInsets.only(top: 5, bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Icon(CryptoCoinIcons.getCryptoIcon('${entry.key}') ??
+                          Icons.help),
+                      Text(
+                        ' ${entry.key}: ',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 27),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '${entry.value[1]}\n${(entry.value[0]).toStringAsFixed(2)} $selectedCurrency\n${entry.value[2]} %',
+                    style: TextStyle(fontSize: 27),
+                  ),
+                ],
+              ),
             ),
         // Last Container with the Total Amount on the account
         Container(
@@ -144,11 +147,11 @@ Container _printData(Map<String, List<double>> coinInfo) {
             children: [
               Text(
                 'Total: ',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 27),
               ),
               Text(
                 '${(coinInfo['Total']!.first).toStringAsFixed(2)} $selectedCurrency',
-                style: TextStyle(fontSize: 25),
+                style: TextStyle(fontSize: 27),
               ),
             ],
           ),
@@ -422,17 +425,19 @@ class AccountPage extends StatelessWidget {
   }
 }
 
+// Intro Page on first time setup
 class IntroductionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final introKey = GlobalKey<IntroductionScreenState>();
     const pageDecoration = const PageDecoration(
-      titlePadding: EdgeInsets.only(top: 50, bottom: 20),
+      titlePadding: EdgeInsets.only(bottom: 30),
       titleTextStyle: TextStyle(
         fontSize: 28.0,
         fontWeight: FontWeight.w700,
         color: Colors.white,
       ),
+      bodyAlignment: Alignment.center,
     );
     const textDescription = const TextStyle(fontSize: 18, color: Colors.white);
 
@@ -478,9 +483,12 @@ class IntroductionPage extends StatelessWidget {
           title: "Login",
           bodyWidget: Column(
             children: [
-              Image.asset('assets/images/step1.png'),
+              Image.asset(
+                'assets/images/step1.png',
+                height: 450,
+              ),
               Container(
-                margin: EdgeInsets.only(top: 20),
+                margin: EdgeInsets.only(top: 30),
                 child: Text(
                   "Login with your Binance Account Credentials",
                   style: textDescription,
@@ -495,9 +503,12 @@ class IntroductionPage extends StatelessWidget {
           title: "API Management",
           bodyWidget: Column(
             children: [
-              Image.asset('assets/images/step2.png'),
+              Image.asset(
+                'assets/images/step2.png',
+                height: 450,
+              ),
               Container(
-                margin: EdgeInsets.only(top: 20),
+                margin: EdgeInsets.only(top: 30),
                 child: Text(
                   "Go to API Management",
                   style: textDescription,
@@ -511,9 +522,12 @@ class IntroductionPage extends StatelessWidget {
           title: "Create API",
           bodyWidget: Column(
             children: [
-              Image.asset('assets/images/step3.png'),
+              Image.asset(
+                'assets/images/step3.png',
+                height: 400,
+              ),
               Container(
-                margin: EdgeInsets.only(top: 20),
+                margin: EdgeInsets.only(top: 30),
                 child: Text(
                   "Create the API\n\nChoose the name you want for the label\nFollow the Verification account steps",
                   style: textDescription,
@@ -528,9 +542,12 @@ class IntroductionPage extends StatelessWidget {
           title: "Save the Credentials",
           bodyWidget: Column(
             children: [
-              Image.asset('assets/images/step4.png'),
+              Image.asset(
+                'assets/images/step4.png',
+                height: 400,
+              ),
               Container(
-                margin: EdgeInsets.only(top: 20),
+                margin: EdgeInsets.only(top: 30),
                 child: Text(
                   "Only select Enable Reading\nWe recommend to select Unrestricted IP since this will constrain the application's functionality\n\nSave your credentials!",
                   style: textDescription,
@@ -760,11 +777,11 @@ class _BalanceState extends State<BalanceWidget> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      margin: const EdgeInsets.only(top: 200),
+                      margin: const EdgeInsets.only(top: 180, bottom: 30),
                       child: Text(
                         '${snap.data!['Percent']!.first > 0 ? '+' : ''}${snap.data!['Percent']!.first.toStringAsFixed(2)}%',
                         style: TextStyle(
-                            fontSize: 75,
+                            fontSize: 80,
                             color: snap.data!['Percent']!.first > 0
                                 ? Colors.green
                                 : Colors.red),
