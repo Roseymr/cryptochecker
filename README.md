@@ -3,9 +3,9 @@ A simple App to quickly check information about your crypto assets (binance acco
 
 ## Information Displayed
 ### Percentage
-<img align="left" src="https://i.imgur.com/ZRHtcbX.png"> This represents the Weighted Average of the Percentage change on the last 24hr<br>```percentage = (asset1.priceChange * (asset1.quantity / total)) + (asset2.priceChange * (asset2.quantity / total)) + ...```<br><br>
+<img align="left" src="https://i.imgur.com/ZRHtcbX.png" height="90"> This represents the Weighted Average of the Percentage change on the last 24hr<br>```percentage = (asset1.priceChange * (asset1.quantity / total)) + (asset2.priceChange * (asset2.quantity / total)) + ...```<br>
 ### Asset Info
-<img align="left" src=https://i.imgur.com/dvHCRjE.png height="300">
+<img align="left" src=https://i.imgur.com/dvHCRjE.png height="250">
 <pre>
 Crypto Asset Information:
 Crypto Logo (Crypto Tag): Crypto amount
@@ -18,7 +18,7 @@ Example:  Bitcoin Logo (BTC): 0.000294
                               
 I have 0.000294 bitcoins, from that amount it converts for 9.95 EUR
 and in the last 24hr it got up 0.428%
-</pre><br><br>
+</pre>
 
 ## Recommendations
 - Save your API credentials before putting them in cryptochecker specially **Secret Key** since you won't see it again after creating the API
