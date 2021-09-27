@@ -1,0 +1,28 @@
+name: cryptochecker
+version: 1.0.3
+summary: CryptoChecker
+description: A simple App to quickly check information about your crypto assets (binance account only)
+
+confinement: strict
+base: core18
+grade: stable
+
+slots:
+  dbus-cryptochecker: # adjust accordingly to your app name
+    interface: dbus
+    bus: session
+    name: org.bar.cryptochecker # adjust accordingly to your app name and
+    
+apps:
+  cryptochecker:
+    command: cryptochecker
+    extensions: [flutter-master] # Where "master" defines which Flutter channel to use for the build
+    plugs:
+    - network
+    slots:
+      - dbus-cryptochecker
+parts:
+  cryptochecker:
+    source: .
+    plugin: flutter
+    flutter-target: lib/main.dart # The main entry-point file of the application
