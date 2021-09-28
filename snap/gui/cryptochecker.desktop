@@ -5,4 +5,4 @@ Exec=cryptochecker
 Icon=${SNAP}/meta/gui/cryptochecker.png # replace name to your app name
 Terminal=false
 Type=Application
-Categories=Education; #adjust accordingly your snap category
+Categories=Finance;
